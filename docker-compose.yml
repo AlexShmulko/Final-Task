@@ -1,41 +1,40 @@
-name: Docker Build and Publish
+version: '3'
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: myapp_db
+    volumes:
+      - db-data:/var/lib/postgresql/data
 
-on:
-  push:
-    branches:
-      - main
-      - 'v*.*.*'
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+      - app-data:/app
+      - /app/.git
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
 
-jobs:
-  build_and_publish:
-    runs-on: ubuntu-latest
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py migrate
+    volumes:
+      - .:/app
+      - app-data:/app
+      - /app/.git
+    depends_on:
+      - db
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
-
-    - name: Install dependencies
-      run: pip install -r requirements.txt
-
-    - name: Run unit tests
-      run: python manage.py test
-
-    - name: Build Docker image
-      run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }} .
-
-    - name: Login to Dockerhub
-      run: docker login -u ${{ secrets.DOCKERHUB_USERNAME }} -p ${{ secrets.DOCKERHUB_TOKEN }}
-
-    - name: Push Docker image
-      run: |
-        docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }}
-        if [[ ${{ github.ref }} == 'refs/heads/main' ]]; then
-          docker tag ${{ secrets.DOCKERHUB_USERNAME }}/myapp:${{ github.sha }} ${{ secrets.DOCKERHUB_USERNAME }}/myapp:main
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/myapp:main
-        fi
-    
+volumes:
+  db-data:
+  app-data:
