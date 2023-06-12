@@ -11,4 +11,3 @@ resources:
 
 images:
   - name: alexshmulko/myapp:main
-imagePullPolicy: Always
