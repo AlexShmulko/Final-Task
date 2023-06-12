@@ -13,4 +13,3 @@ images:
   - name: nginx
     newName: nginx
     newTag: 1.23.2-alpine
-imagePullPolicy: Always
