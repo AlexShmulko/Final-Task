@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shm-sampleapp-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: shm-sampleapp
+  template:
+    metadata:
+      labels:
+        app: shm-sampleapp
+    spec:
+      initContainers:
+        - name: shm-sampleapp-migrate
+          image: alexshmulko/myapp:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: shm-sampleapp-postgres-secret
+          args:
+            - python
+            - manage.py
+            - migrate
+      containers:
+        - name: shm-sampleapp
+          image: alexshmulko/myapp:main
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          args: 
+            - python
+            - manage.py
+            - runserver
+            - 0.0.0.0:8000
+          envFrom:
+            - secretRef:
+                name: shm-sampleapp-postgres-secret
