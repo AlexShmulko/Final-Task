@@ -15,6 +15,7 @@ spec:
       initContainers:
         - name: shm-sampleapp-migrate
           image: alexshmulko/myapp:main
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           envFrom:
@@ -27,6 +28,7 @@ spec:
       containers:
         - name: shm-sampleapp
           image: alexshmulko/myapp:main
+          imagePullPolicy: Always
           ports:
             - containerPort: 8000
           args: 
